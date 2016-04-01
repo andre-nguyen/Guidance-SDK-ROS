@@ -7,27 +7,27 @@
 #include <Windows.h>
 #include <WinBase.h>
 
-class DJI_lock
-{
+class DJI_lock {
 public:
-	DJI_lock();
-	~DJI_lock();
-	void         enter();
-	void         leave();
+  DJI_lock();
+  ~DJI_lock();
+  void enter();
+  void leave();
+
 private:
-	CRITICAL_SECTION  m_critical_section;
+  CRITICAL_SECTION m_critical_section;
 };
 
-class DJI_event
-{
+class DJI_event {
 public:
-	DJI_event();
-	~DJI_event();
-	int         set_event();
-	int         wait_event();
+  DJI_event();
+  ~DJI_event();
+  int set_event();
+  int wait_event();
+
 private:
-	HANDLE      m_pipe_read;
-	HANDLE      m_pipe_write;
+  HANDLE m_pipe_read;
+  HANDLE m_pipe_write;
 };
 
 #else
@@ -35,31 +35,30 @@ private:
 #include <pthread.h>
 #include <semaphore.h>
 
-class DJI_lock
-{
+class DJI_lock {
 public:
-	DJI_lock();
-	~DJI_lock();
-	void         enter();
-	void         leave();
+  DJI_lock();
+  ~DJI_lock();
+  void enter();
+  void leave();
+
 private:
-	pthread_mutex_t m_lock;
+  pthread_mutex_t m_lock;
 };
 
-class DJI_event
-{
+class DJI_event {
 public:
-	DJI_event();
-	~DJI_event();
-	int         set_event();
-	int         wait_event();
+  DJI_event();
+  ~DJI_event();
+  int set_event();
+  int wait_event();
+
 private:
-	sem_t		m_sem;
+  sem_t m_sem;
 };
 
 #endif
 
-void   sleep( int microsecond );
-
+void sleep(int microsecond);
 
 #endif
