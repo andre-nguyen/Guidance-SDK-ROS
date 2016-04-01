@@ -74,6 +74,22 @@ std::ostream &operator<<(std::ostream &out, const e_sdk_err_code value) {
   return out << s;
 }
 
+unsigned int guidance_first_timestamp = 0;
+ros::Time ref_time;
+bool first_msg = true;
+
+ros::Time get_ref_time_offset(unsigned int now) {
+  // now is in ms
+  if (first_msg) {
+    guidance_first_timestamp = now;
+    ref_time = ros::Time::now();
+    first_msg = false;
+  }
+
+  ros::Duration d((now - guidance_first_timestamp) / 1000);
+  return ref_time + d;
+}
+
 int my_callback(int data_type, int data_len, char *content) {
   g_lock.enter();
 
@@ -89,7 +105,7 @@ int my_callback(int data_type, int data_len, char *content) {
       cv_bridge::CvImage left_8;
       g_greyscale_image_left.copyTo(left_8.image);
       left_8.header.frame_id = "guidance";
-      left_8.header.stamp = ros::Time::now();
+      left_8.header.stamp = get_ref_time_offset(data->time_stamp);
       left_8.encoding = sensor_msgs::image_encodings::MONO8;
       left_image_pub.publish(left_8.toImageMsg());
     }
@@ -101,7 +117,7 @@ int my_callback(int data_type, int data_len, char *content) {
       cv_bridge::CvImage right_8;
       g_greyscale_image_right.copyTo(right_8.image);
       right_8.header.frame_id = "guidance";
-      right_8.header.stamp = ros::Time::now();
+      right_8.header.stamp = get_ref_time_offset(data->time_stamp);
       right_8.encoding = sensor_msgs::image_encodings::MONO8;
       right_image_pub.publish(right_8.toImageMsg());
     }
@@ -113,7 +129,7 @@ int my_callback(int data_type, int data_len, char *content) {
       cv_bridge::CvImage depth_16;
       g_depth.copyTo(depth_16.image);
       depth_16.header.frame_id = "guidance";
-      depth_16.header.stamp = ros::Time::now();
+      depth_16.header.stamp = get_ref_time_offset(data->time_stamp);
       depth_16.encoding = sensor_msgs::image_encodings::MONO16;
       depth_image_pub.publish(depth_16.toImageMsg());
     }
@@ -133,7 +149,7 @@ int my_callback(int data_type, int data_len, char *content) {
     // publish imu data
     geometry_msgs::TransformStamped g_imu;
     g_imu.header.frame_id = "guidance";
-    g_imu.header.stamp = ros::Time::now();
+    g_imu.header.stamp = get_ref_time_offset(imu_data->time_stamp);
     g_imu.transform.translation.x = imu_data->acc_x;
     g_imu.transform.translation.y = imu_data->acc_y;
     g_imu.transform.translation.z = imu_data->acc_z;
@@ -153,7 +169,7 @@ int my_callback(int data_type, int data_len, char *content) {
     // publish velocity
     geometry_msgs::Vector3Stamped g_vo;
     g_vo.header.frame_id = "guidance";
-    g_vo.header.stamp = ros::Time::now();
+    g_vo.header.stamp = get_ref_time_offset(vo->time_stamp);
     g_vo.vector.x = 0.001f * vo->vx;
     g_vo.vector.y = 0.001f * vo->vy;
     g_vo.vector.z = 0.001f * vo->vz;
@@ -182,14 +198,14 @@ int my_callback(int data_type, int data_len, char *content) {
 
   /* ultrasonic */
   if (e_ultrasonic == data_type && NULL != content) {
-    ultrasonic_data *ultrasonic = (ultrasonic_data *)content;/*
-    printf("frame index: %d, stamp: %d\n", ultrasonic->frame_index,
-           ultrasonic->time_stamp);
-    for (int d = 0; d < CAMERA_PAIR_NUM; ++d) {
-      printf("ultrasonic distance: %f, reliability: %d\n",
-             ultrasonic->ultrasonic[d] * 0.001f,
-             (int)ultrasonic->reliability[d]);
-    }*/
+    ultrasonic_data *ultrasonic = (ultrasonic_data *)content; /*
+     printf("frame index: %d, stamp: %d\n", ultrasonic->frame_index,
+            ultrasonic->time_stamp);
+     for (int d = 0; d < CAMERA_PAIR_NUM; ++d) {
+       printf("ultrasonic distance: %f, reliability: %d\n",
+              ultrasonic->ultrasonic[d] * 0.001f,
+              (int)ultrasonic->reliability[d]);
+     }*/
 
     // publish ultrasonic data
     sensor_msgs::LaserScan g_ul;
@@ -213,7 +229,7 @@ int my_callback(int data_type, int data_len, char *content) {
     // publish position
     geometry_msgs::Vector3Stamped g_pos;
     g_pos.header.frame_id = "guidance";
-    g_pos.header.stamp = ros::Time::now();
+    g_pos.header.stamp = get_ref_time_offset(m->time_stamp);
     g_pos.vector.x = m->position_in_global_x;
     g_pos.vector.y = m->position_in_global_y;
     g_pos.vector.z = m->position_in_global_z;
