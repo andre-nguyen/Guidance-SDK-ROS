@@ -250,8 +250,8 @@ int main(int argc, char **argv) {
   /* initialize ros */
   ros::init(argc, argv, "GuidanceNode");
   ros::NodeHandle my_node;
-  depth_image_pub =
-      my_node.advertise<sensor_msgs::Image>("/guidance/depth_image", 1);
+  // depth_image_pub =
+  //    my_node.advertise<sensor_msgs::Image>("/guidance/depth_image", 1);
   left_image_pub =
       my_node.advertise<sensor_msgs::Image>("/guidance/left_image", 1);
   right_image_pub =
@@ -295,8 +295,8 @@ int main(int argc, char **argv) {
   RETURN_IF_ERR(err_code);
   err_code = select_greyscale_image(CAMERA_ID, false);
   RETURN_IF_ERR(err_code);
-  err_code = select_depth_image(CAMERA_ID);
-  RETURN_IF_ERR(err_code);
+  // err_code = select_depth_image(CAMERA_ID);
+  // RETURN_IF_ERR(err_code);
   select_imu();
   select_ultrasonic();
   select_obstacle_distance();
@@ -365,7 +365,7 @@ int main(int argc, char **argv) {
 
         select_greyscale_image(CAMERA_ID, true);
         select_greyscale_image(CAMERA_ID, false);
-        select_depth_image(CAMERA_ID);
+        // select_depth_image(CAMERA_ID);
 
         err_code = start_transfer();
         RETURN_IF_ERR(err_code);
